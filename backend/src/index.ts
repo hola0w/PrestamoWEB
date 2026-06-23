@@ -35,7 +35,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://prestamo-web-gamma.vercel.app"
+      "https://prestamo-web-zc6i.vercel.app"
     ],
     credentials: true
   })
