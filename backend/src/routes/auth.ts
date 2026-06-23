@@ -23,7 +23,7 @@ authRouter.post("/login", async (req, res) => {
     // LEFT JOIN porque empresa_id puede ser NULL (usuario aún sin asignar).
     const result = await pool.query(
       `SELECT
-         u.id, u.nombre, u.username, u.password, u.rol, u.permisos, u.estado,
+         u.id, u.nombre, u.username, u.password, u.rol, u.estado,
          u.empresa_id,
          e.nombre AS empresa_nombre
        FROM usuarios u
