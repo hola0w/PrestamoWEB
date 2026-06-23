@@ -83,7 +83,7 @@ app.use("/api/reportes/prestamos", prestamos_2.default); // authMiddleware ya ap
 app.use("/api/reportes/cobros", cobros_1.default); // authMiddleware ya aplicado dentro del router
 // Genérico — debe ir DESPUÉS de las específicas de arriba
 app.use("/api/reportes", auth_1.authMiddleware, reportes_1.default);
-app.listen(process.env.PORT || 3000, () => {
-    console.log(`API corriendo en http://localhost:${process.env.PORT || 3000}`);
+app.listen(process.env.PORT || 1000, () => {
+    console.log(`API corriendo en http://localhost:${process.env.PORT || 1000}`);
 });
 //# sourceMappingURL=index.js.map

@@ -29,7 +29,19 @@ import sucursalesRouter from "./routes/Sucursales";
 import zonasRouter      from "./routes/ZonasRoutes";
 
 const app = express();
-app.use(cors());
+//app.use(cors());
+
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://prestamo-web-gamma.vercel.app"
+    ],
+    credentials: true
+  })
+);
+
+
 app.use(express.json());
 
 // Pública
@@ -57,6 +69,6 @@ app.use("/api/reportes/cobros",    reportesCobrosRouter);    // authMiddleware y
 // Genérico — debe ir DESPUÉS de las específicas de arriba
 app.use("/api/reportes", authMiddleware, reportesRouter);
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log(`API corriendo en http://localhost:${process.env.PORT || 3000}`);
+app.listen(process.env.PORT || 1000, () => {
+  console.log(`API corriendo en http://localhost:${process.env.PORT || 1000}`);
 });
