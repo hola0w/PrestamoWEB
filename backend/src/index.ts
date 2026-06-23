@@ -1,6 +1,7 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 
+
 import express from "express";
 import cors from "cors";
 import { authMiddleware } from "./middleware/auth";
@@ -9,6 +10,10 @@ import prestamosRouter   from "./routes/prestamos";
 import cobrosRouter      from "./routes/cobro";
 import cuotasRouter      from "./routes/cuotas";
 import reportesRouter    from "./routes/Reportes/reportes";
+
+// En app.ts
+import healthRouter from "./routes/health";
+
 
 // Reportes nuevos por categoría (deben montarse ANTES que /api/reportes
 // genérico — ver nota más abajo)
@@ -29,7 +34,7 @@ app.use(express.json());
 
 // Pública
 app.use("/api/auth", authRouter);
-
+app.use("/api/health", healthRouter);
 // Protegidas — catálogos
 app.use("/api/clientes",   authMiddleware, clientesRouter);
 app.use("/api/prestamos",  authMiddleware, prestamosRouter);
