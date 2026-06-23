@@ -931,3 +931,22 @@ BEFORE UPDATE ON sucursales
 FOR EACH ROW
 
 EXECUTE FUNCTION actualizar_updated_at();
+
+INSERT INTO usuarios (
+    nombre,
+    username,
+    password,
+    estado,
+    rol
+)
+SELECT
+    'Administrador',
+    'wpaulino',
+    crypt('123456', gen_salt('bf')),
+    'ACTIVO',
+    'ADMINISTRADOR'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM usuarios
+    WHERE username = 'wpaulino'
+);
