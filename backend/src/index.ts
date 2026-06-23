@@ -4,7 +4,7 @@ dotenv.config();
 
 import express from "express";
 import cors from "cors";
-import { pool } from "./config/database"; // Asegura que se inicialice la BD
+import { pool } from "./db/connection"; // Asegura que se inicialice la BD
 import { authMiddleware } from "./middleware/auth";
 
 // Importación de enrutadores
