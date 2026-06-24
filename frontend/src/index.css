@@ -378,3 +378,139 @@ tbody tr:hover { background: var(--surface-2); }
 .font-medium { font-weight: 500; }
 .font-bold { font-weight: 700; }
 .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Mobile sidebar toggle ────────────────────────────── */
+.sidebar-mobile-toggle {
+  display: none;
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 150;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.sidebar-overlay {
+  display: none;
+}
+
+/* ── Responsive breakpoints ──────────────────────────── */
+@media (max-width: 1024px) {
+  .page { padding: 1.5rem; }
+}
+
+@media (max-width: 900px) {
+  /* Sidebar se convierte en panel deslizante */
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    box-shadow: var(--shadow-md);
+  }
+  .sidebar--open {
+    transform: translateX(0);
+  }
+
+  .sidebar-mobile-toggle {
+    display: flex;
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+    z-index: 99;
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+
+  .topbar {
+    padding: 0 1rem 0 3.25rem; /* deja espacio al botón hamburguesa */
+  }
+
+  .page { padding: 1.25rem; }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  html { font-size: 15px; }
+
+  .topbar {
+    height: 56px;
+  }
+
+  .topbar-title { font-size: 0.9rem; }
+
+  .topbar-actions .btn span,
+  .topbar-actions .btn { font-size: 0.78rem; padding: 0.45rem 0.7rem; }
+
+  .page { padding: 1rem; }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .stat-card { padding: 1rem; }
+  .stat-value { font-size: 1.4rem; }
+
+  .card-header {
+    padding: 1rem 1.1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .card-body { padding: 1rem; }
+
+  thead th, tbody td {
+    padding: 0.6rem 0.7rem;
+    font-size: 0.8rem;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal {
+    max-width: 100%;
+    width: 100%;
+    border-radius: var(--radius-lg);
+    margin: 0;
+  }
+
+  .modal-header, .modal-body, .modal-footer {
+    padding: 1rem;
+  }
+
+  .auth-card {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

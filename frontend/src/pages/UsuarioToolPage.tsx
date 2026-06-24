@@ -342,7 +342,7 @@ export function UsuarioToolPage() {
     <>
       {/* Topbar */}
       <div className="topbar">
-        <span className="topbar-title">🔧 Gestión de usuarios</span>
+        <span className="topbar-title">Gestión de usuarios</span>
         <div className="topbar-actions">
           <button className="btn btn-ghost" onClick={cargar} disabled={loading}>
             {loading ? "Actualizando..." : "↻ Actualizar"}

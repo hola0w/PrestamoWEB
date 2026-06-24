@@ -199,7 +199,7 @@ export function SucursalPage() {
     <>
       {/* Topbar */}
       <div className="topbar">
-        <span className="topbar-title">🏢 Sucursales</span>
+        <span className="topbar-title">Sucursales</span>
         <div className="topbar-actions">
           <button className="btn btn-ghost" onClick={cargar} disabled={loading}>
             {loading ? "Actualizando..." : "↻ Actualizar"}
