@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { IconBuildingBank, IconLock } from "../components/Icons";
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:1000/api";
+const BASE_URL = import.meta.env.VITE_API_URL ?? "https://prestamoweb.onrender.com/api";
 
 type DbStatus = "checking" | "online" | "offline";
 

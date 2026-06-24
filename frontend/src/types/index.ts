@@ -114,3 +114,35 @@ export interface ActualizarSucursalDTO {
   telefono?:   string | null;
   estado?:     EstadoSucursal;
 }
+
+// ── Tipos de Usuarios ─────────────────────────────────────────
+export interface Usuario {
+  id:            string;
+  nombre:        string;
+  username:      string;
+  rol:           "ADMINISTRADOR" | "ESTANDAR";
+  estado:        "ACTIVO" | "INACTIVO" | "BLOQUEADO";
+  permisos:      string[];
+  empresaId:     string | null;
+  empresaNombre: string | null;
+  createdAt?:    string;
+}
+
+export interface LoginDTO {
+  username: string;
+  password: string;
+}
+
+export interface RegistroDTO {
+  nombre:    string;
+  username:  string;
+  password:  string;
+  rol?:      "ADMINISTRADOR" | "ESTANDAR";
+  permisos?: string[];
+  empresaId?: string;
+}
+
+export interface LoginResponse {
+  token:   string;
+  usuario: Usuario;
+}

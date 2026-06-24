@@ -1,11 +1,5 @@
-//const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:1000/api";
-
-
-//const BASE_URL = import.meta.env.VITE_API_URL ?? "https://prestamo-web-gamma.vercel.app";
 const BASE_URL =
   import.meta.env.VITE_API_URL ?? "https://prestamoweb.onrender.com/api";
-
-
 
 function getToken(): string | null {
   try {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, createContext, useContext } from "react";
+import { api } from "../services/api";
 
 // ── Módulos del sistema ───────────────────────────────────────
 export type Modulo =
@@ -24,18 +25,14 @@ export const MODULOS_INFO: Record<Modulo, { label: string; icon: string; descrip
 
 // ── Tipos ─────────────────────────────────────────────────────
 export interface UsuarioAuth {
-  id:             string;
-  nombre:         string;
-  username:       string;
-  // CORREGIDO: el enum real rol_usuario en la DB es {ADMINISTRADOR, ESTANDAR}.
-  // (verificado con SELECT enum_range(NULL::rol_usuario))
-  rol:            "ADMINISTRADOR" | "ESTANDAR";
-  estado:         "ACTIVO" | "INACTIVO" | "BLOQUEADO";
-  permisos:       Modulo[];
-  // Empresa a la que pertenece el usuario. Puede ser null — por ejemplo
-  // un administrador global no necesita estar atado a una empresa.
-  empresaId:      string | null;
-  empresaNombre:  string | null;
+  id:            string;
+  nombre:        string;
+  username:      string;
+  rol:           "ADMINISTRADOR" | "ESTANDAR";
+  estado:        "ACTIVO" | "INACTIVO" | "BLOQUEADO";
+  permisos:      Modulo[];
+  empresaId:     string | null;
+  empresaNombre: string | null;
 }
 
 interface AuthState {
@@ -49,8 +46,6 @@ interface AuthContextValue extends AuthState {
   logout:     () => void;
   puedeVer:   (modulo: Modulo) => boolean;
   esAdmin:    boolean;
-  // true si el usuario es ESTANDAR y aún no tiene empresa asignada.
-  // Los administradores nunca quedan bloqueados por esto.
   sinEmpresa: boolean;
 }
 
@@ -77,14 +72,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(async (username: string, password: string) => {
-    const res = await fetch("/api/auth/login", {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({ username, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error ?? "Credenciales inválidas");
-
+    const data = await api.post<{ token: string; usuario: UsuarioAuth }>(
+      "/auth/login",
+      { username, password }
+    );
     const newState: AuthState = { token: data.token, usuario: data.usuario };
     setState(newState);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
@@ -95,20 +86,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(STORAGE_KEY);
   }, []);
 
-  const esAdmin = state.usuario?.rol === "ADMINISTRADOR";
-
-  // CORREGIDO: el bloqueo por falta de empresa solo aplica a usuarios
-  // ESTANDAR. Un ADMINISTRADOR puede no tener empresa_id (admin global)
-  // y debe seguir viendo todo.
+  const esAdmin  = state.usuario?.rol === "ADMINISTRADOR";
   const sinEmpresa = !!state.usuario && !esAdmin && state.usuario.empresaId == null;
 
   const puedeVer = useCallback(
     (modulo: Modulo): boolean => {
-      if (!state.usuario) return false;
-      if (esAdmin)         return true; // admin ve todo, sin excepción
-      if (sinEmpresa)      return modulo === "dashboard";
-      if (modulo === "dashboard") return true; // dashboard visible para todos
-
+      if (!state.usuario)         return false;
+      if (esAdmin)                return true;
+      if (sinEmpresa)             return modulo === "dashboard";
+      if (modulo === "dashboard") return true;
       return state.usuario.permisos.includes(modulo);
     },
     [state.usuario, esAdmin, sinEmpresa]
