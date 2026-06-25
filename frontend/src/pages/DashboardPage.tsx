@@ -3,7 +3,6 @@ import { useClientes } from "../hooks/useClientes";
 import { useAuth } from "../hooks/useAuth";
 import type { EstadoPrestamo, Prestamo } from "../types";
 
-// ✦ Estados en MAYÚSCULA — igual que la BD y types.ts
 const ESTADO_CONFIG: Record<EstadoPrestamo, { label: string; color: string; bg: string }> = {
   ACTIVO:    { label: "Activos",    color: "var(--brand)",   bg: "var(--brand-light)" },
   PAGADO:    { label: "Pagados",    color: "var(--success)", bg: "var(--success-bg)"  },

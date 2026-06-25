@@ -14,9 +14,12 @@ export const cobrosService = {
   resumenPorPrestamo: (prestamoId: string): Promise<ResumenCobro> =>
     api.get<ResumenCobro>(`/cobros/prestamo/${prestamoId}/resumen`),
 
-  registrar: (body: { prestamoId: string; montoPagado: number }): Promise<Cobro> =>
-    api.post<Cobro>("/cobros", body),
+  registrar: (prestamoId: string, montoPagado: number): Promise<Cobro> =>
+    api.post<Cobro>("/cobros", { prestamoId, montoPagado }),
 
-  cambiarEstado: (id: string, estado: "PENDIENTE" | "PAGADO" | "PARCIAL" | "ATRASADO"): Promise<Cobro> =>
+  cambiarEstado: (
+    id: string,
+    estado: "PENDIENTE" | "PAGADO" | "PARCIAL" | "ATRASADO"
+  ): Promise<Cobro> =>
     api.patch<Cobro>(`/cobros/${id}/estado`, { estado }),
 };

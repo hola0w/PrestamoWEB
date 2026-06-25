@@ -4,9 +4,12 @@ import { useClientes } from "../hooks/useClientes";
 import type { CrearPrestamoDTO, EstadoPrestamo, TipoPlazo, Prestamo } from "../types";
 import { IconPlus, IconX, IconCash } from "../components/Icons";
 
-const ESTADOS: EstadoPrestamo[] = ["PENDIENTE", "ACTIVO", "PAGADO", "MOROSO"];
-const ESTADOS_SIN_COBRO: EstadoPrestamo[] = ["PAGADO"];
-//const [prestamoAEditar, setPrestamoAEditar] = useState<Prestamo | null>(null);
+// Estados válidos en el backend (del enum de PostgreSQL)
+const ESTADOS: EstadoPrestamo[] = ["PENDIENTE", "APROBADO", "ACTIVO", "PAGADO", "MOROSO", "CANCELADO"];
+
+// El botón Cobrar solo se habilita si el préstamo está en estos estados
+// (el backend rechaza PENDIENTE, PAGADO y CANCELADO)
+const ESTADOS_COBRABLES: EstadoPrestamo[] = ["ACTIVO", "MOROSO"];
 
 const TIPO_PLAZO_OPCIONES: { value: TipoPlazo; label: string }[] = [
   { value: "MENSUAL",   label: "Mensual"   },
@@ -276,9 +279,9 @@ interface ModalCobroProps {
 }
 
 function ModalCobro({ prestamo, onClose, onConfirm }: ModalCobroProps) {
-  const [monto, setMonto]   = useState<number>(Number(prestamo.cuota_mensual));
-  const [saving, setSaving] = useState(false);
-  const [error, setError]   = useState<string | null>(null);
+  const [monto,   setMonto]   = useState<number>(Number(prestamo.cuota_mensual));
+  const [saving,  setSaving]  = useState(false);
+  const [error,   setError]   = useState<string | null>(null);
   const [baucher, setBaucher] = useState<{ monto: number; recibo: string; fecha: string } | null>(null);
 
   const cuota = Number(prestamo.cuota_mensual);
@@ -289,6 +292,7 @@ function ModalCobro({ prestamo, onClose, onConfirm }: ModalCobroProps) {
     setError(null);
     setSaving(true);
     try {
+      // onConfirm recibe (prestamoId, monto) — el hook llama a cobrosService.registrar()
       await onConfirm(prestamo.id, monto);
       setBaucher({ monto, recibo: genRecibo(), fecha: HOY_STR });
     } catch (err: unknown) {
@@ -416,13 +420,14 @@ export function PrestamosPage() {
   const { prestamos, loading, error, cargar, crear, cambiarEstado, registrarCobro } = usePrestamos();
   const { clientes } = useClientes();
 
-  const [showModal, setShowModal]             = useState(false);
-  const [form, setForm]                       = useState<CrearPrestamoDTO>(EMPTY);
-  const [formError, setFormError]             = useState<string | null>(null);
-  const [saving, setSaving]                   = useState(false);
-  const [prestamoACobrar, setPrestamoACobrar] = useState<Prestamo | null>(null);
-  const [busqueda, setBusqueda]               = useState("");
-  const [prestamoAEditar, setPrestamoAEditar] = useState<Prestamo | null>(null);
+  const [showModal,        setShowModal]        = useState(false);
+  const [form,             setForm]             = useState<CrearPrestamoDTO>(EMPTY);
+  const [formError,        setFormError]        = useState<string | null>(null);
+  const [saving,           setSaving]           = useState(false);
+  const [prestamoACobrar,  setPrestamoACobrar]  = useState<Prestamo | null>(null);
+  const [busqueda,         setBusqueda]         = useState("");
+  const [prestamoAEditar,  setPrestamoAEditar]  = useState<Prestamo | null>(null);
+
   const prestamosFiltrados = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
     if (!q) return prestamos;
@@ -568,11 +573,13 @@ export function PrestamosPage() {
                     <th>Frecuencia</th>
                     <th>Estado</th>
                     <th></th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   {prestamosFiltrados.map((p: Prestamo) => {
-                    const sinCobro    = ESTADOS_SIN_COBRO.includes(p.estado);
+                    // El backend solo acepta cobros en ACTIVO o MOROSO
+                    const cobrable    = ESTADOS_COBRABLES.includes(p.estado);
                     const restante    = Number(p.monto_restante ?? p.capital);
                     const totalAPagar = Number(p.cuota_mensual) * Number(p.plazo_meses);
                     const pctPagado   = totalAPagar > 0
@@ -640,26 +647,29 @@ export function PrestamosPage() {
                           <button
                             className="btn btn-primary btn-sm"
                             onClick={() => setPrestamoACobrar(p)}
-                            disabled={sinCobro}
-                            title={sinCobro ? "Préstamo ya pagado" : "Registrar cobro"}
+                            disabled={!cobrable}
+                            title={
+                              !cobrable
+                                ? `No se puede cobrar en estado ${p.estado}. Cambia el estado a ACTIVO o MOROSO.`
+                                : "Registrar cobro"
+                            }
                             style={{ display: "flex", alignItems: "center", gap: "5px", whiteSpace: "nowrap" }}
                           >
                             <IconCash size={14} />
                             Cobrar
                           </button>
-
                         </td>
                         <td>
-  <div style={{ display: "flex", gap: "6px" }}>
-    <button
-      className="btn btn-secondary btn-sm"
-      onClick={() => setPrestamoAEditar(p)}
-      title="Editar préstamo"
-    >
-      ✏️ Editar
-    </button>
-  </div>
-</td>
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            <button
+                              className="btn btn-secondary btn-sm"
+                              onClick={() => setPrestamoAEditar(p)}
+                              title="Editar préstamo"
+                            >
+                              ✏️ Editar
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     );
                   })}
@@ -688,14 +698,14 @@ export function PrestamosPage() {
                     value={form.clienteId} onChange={handleChange} required>
                     <option value="">— Seleccionar cliente —</option>
                     {clientes.map((c) => (
-            <option
-  key={c.id}
-  value={c.id}
-  disabled={(c.score ?? 0) < 600}
->
-  {c.nombre} — score {c.score ?? "N/A"}
-  {(c.score ?? 0) < 600 ? " (no apto)" : ""}
-</option>
+                      <option
+                        key={c.id}
+                        value={c.id}
+                        disabled={(c.score ?? 0) < 600}
+                      >
+                        {c.nombre} — score {c.score ?? "N/A"}
+                        {(c.score ?? 0) < 600 ? " (no apto)" : ""}
+                      </option>
                     ))}
                   </select>
                 </div>

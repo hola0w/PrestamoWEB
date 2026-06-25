@@ -37,7 +37,7 @@ export function usePrestamos() {
 
   const registrarCobro = useCallback(
     async (prestamoId: string, montoPagado: number): Promise<Cobro> => {
-      const cobro = await cobrosService.registrar({ prestamoId, montoPagado });
+      const cobro = await cobrosService.registrar(prestamoId, montoPagado);
       await cargar();
       return cobro;
     },

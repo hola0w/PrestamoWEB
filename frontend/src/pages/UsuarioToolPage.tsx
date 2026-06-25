@@ -1,17 +1,14 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useAuth, MODULOS_INFO, type Modulo } from "../hooks/useAuth";
+import {
+  usuariosService,
+  type UsuarioAdmin,
+  type CrearUsuarioDTO,
+  type ActualizarUsuarioDTO,
+} from "../services/usuariosService";
 
-// ── Tipos ─────────────────────────────────────────────────────
-interface Usuario {
-  id:         string;
-  nombre:     string;
-  username:   string;
-  rol:        "ADMINISTRADOR" | "ESTANDAR";
-  estado:     "ACTIVO" | "INACTIVO";
-  permisos:   Modulo[];
-  fecha_crea: string;
-  fecha_act:  string;
-}
+// Alias para no renombrar todo el componente
+type Usuario = UsuarioAdmin;
 
 // Módulos asignables a ESTANDAR (nunca "usuarios")
 const MODULOS_ASIGNABLES: Modulo[] = [
@@ -23,15 +20,6 @@ function fmtFecha(f: string | null) {
   return new Date(f).toLocaleDateString("es-DO", {
     day: "2-digit", month: "short", year: "numeric",
   });
-}
-
-// ── Helpers API ───────────────────────────────────────────────
-function useApiHeaders() {
-  const { token } = useAuth();
-  return {
-    "Content-Type":  "application/json",
-    "Authorization": `Bearer ${token}`,
-  };
 }
 
 // ── Selector visual de permisos ───────────────────────────────
@@ -101,12 +89,11 @@ function PermisosPicker({
 // ── Formulario crear / editar ─────────────────────────────────
 interface FormProps {
   inicial?:   Usuario | null;
-  headers:    Record<string, string>;
   onGuardar:  () => void;
   onCancelar: () => void;
 }
 
-function FormUsuario({ inicial, headers, onGuardar, onCancelar }: FormProps) {
+function FormUsuario({ inicial, onGuardar, onCancelar }: FormProps) {
   const esNuevo = !inicial;
 
   const [nombre,   setNombre]   = useState(inicial?.nombre   ?? "");
@@ -136,16 +123,18 @@ function FormUsuario({ inicial, headers, onGuardar, onCancelar }: FormProps) {
 
     setSaving(true);
     try {
-      const body: any = { nombre, username, estado, permisos };
-      if (password) body.password = password;
-
-      const url    = esNuevo ? "/api/usuarios" : `/api/usuarios/${inicial!.id}`;
-      const method = esNuevo ? "POST" : "PATCH";
-
-      const res  = await fetch(url, { method, headers, body: JSON.stringify(body) });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Error al guardar");
-
+      if (esNuevo) {
+        const body: CrearUsuarioDTO = { nombre, username, password, permisos, estado };
+        await usuariosService.crear(body);
+      } else {
+        const body: ActualizarUsuarioDTO = {
+          nombre,
+          estado,
+          permisos,
+          ...(password ? { password } : {}),
+        };
+        await usuariosService.actualizar(inicial!.id, body);
+      }
       onGuardar();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error desconocido");
@@ -278,8 +267,6 @@ function Modal({
 
 // ── Página principal ──────────────────────────────────────────
 export function UsuarioToolPage() {
-  const headers = useApiHeaders();
-
   const [usuarios,     setUsuarios]     = useState<Usuario[]>([]);
   const [loading,      setLoading]      = useState(false);
   const [error,        setError]        = useState<string | null>(null);
@@ -294,9 +281,7 @@ export function UsuarioToolPage() {
     setLoading(true);
     setError(null);
     try {
-      const res  = await fetch("/api/usuarios", { headers });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Error al cargar");
+      const data = await usuariosService.listar();
       setUsuarios(data);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Error de red");
@@ -319,17 +304,16 @@ export function UsuarioToolPage() {
 
   // ── Desactivar / Activar ────────────────────────────────────
   const toggleEstado = async (u: Usuario) => {
-    const endpoint = u.estado === "ACTIVO"
-      ? `/api/usuarios/${u.id}/desactivar`
-      : `/api/usuarios/${u.id}/activar`;
     try {
-      const res  = await fetch(endpoint, { method: "PATCH", headers });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Error");
+      if (u.estado === "ACTIVO") {
+        await usuariosService.desactivar(u.id);
+      } else {
+        await usuariosService.activar(u.id);
+      }
       setConfirmId(null);
       cargar();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Error");
+      setError(e instanceof Error ? e.message : "Error al cambiar estado");
     }
   };
 
@@ -554,7 +538,6 @@ export function UsuarioToolPage() {
       {modal === "nuevo" && (
         <Modal titulo="Nuevo usuario estándar" onClose={() => setModal(null)}>
           <FormUsuario
-            headers={headers}
             onGuardar={() => { setModal(null); cargar(); }}
             onCancelar={() => setModal(null)}
           />
@@ -569,7 +552,6 @@ export function UsuarioToolPage() {
         >
           <FormUsuario
             inicial={editando}
-            headers={headers}
             onGuardar={() => { setModal(null); setEditando(null); cargar(); }}
             onCancelar={() => { setModal(null); setEditando(null); }}
           />
