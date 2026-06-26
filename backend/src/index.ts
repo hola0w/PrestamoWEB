@@ -50,16 +50,16 @@ app.use("/api/prestamos", authMiddleware, prestamosRouter);
 app.use("/api/cobros", authMiddleware, cobrosRouter);
 app.use("/api/cuotas", authMiddleware, cuotasRouter);
 app.use("/api/usuarios", authMiddleware, usuarioRouter);
-app.use("/api/sucursales", sucursalesRouter); 
-app.use("/api/zonas", zonasRouter);      
+app.use("/api/sucursales", authMiddleware, sucursalesRouter); // ← Se añade protección por seguridad
+app.use("/api/zonas", authMiddleware, zonasRouter);      
 
-// --- RUTAS DE REPORTES ---
-// NOTA: Las rutas específicas se declaran ANTES que la genérica para evitar conflictos 404
-app.use("/api/reportes/cartera", reportesCarteraRouter);   
-app.use("/api/reportes/prestamos", reportesPrestamosRouter); 
-app.use("/api/reportes/cobros", reportesCobrosRouter);    
+// --- RUTAS DE REPORTES PROTEGIDAS ---
+// Aplicamos 'authMiddleware' a CADA UNA para que puedan leer el token y los filtros sin fallar
+//app.use("/api/reportes/cartera", authMiddleware, reportesCarteraRouter);   
+//app.use("/api/reportes/prestamos", authMiddleware, reportesPrestamosRouter); 
+//app.use("/api/reportes/cobros", authMiddleware, reportesCobrosRouter);    
 
-// Ruta de reportes genérica (captura el resto)
+// Ruta de reportes genérica (Captura /clientes-deuda y /cuotas-vencidas si están dentro de reportesRouter)
 app.use("/api/reportes", authMiddleware, reportesRouter);
 
 // Puerto dinámico requerido por Render

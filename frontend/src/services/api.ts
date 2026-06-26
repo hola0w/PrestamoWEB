@@ -1,5 +1,5 @@
-const BASE_URL =
-  import.meta.env.VITE_API_URL ?? "https://prestamoweb.onrender.com/api";
+// Forzamos la URL de Render como BASE_URL absoluta para los reportes
+const BASE_URL = "https://prestamoweb.onrender.com/api";
 
 function getToken(): string | null {
   try {
@@ -21,17 +21,30 @@ async function request<T>(
     ...(options.headers ?? {}),
   };
 
-  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+  try {
+    const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({ error: "Error desconocido" }));
-    throw Object.assign(new Error(body.error ?? "Error en la solicitud"), {
-      status: res.status,
-    });
+    if (!res.ok) {
+      // Manejo específico si el token venció (401) o no tiene permisos (403)
+      if (res.status === 401 || res.status === 403) {
+        window.dispatchEvent(new CustomEvent("auth:expired"));
+        throw new Error("Tu sesión ha expirado. Por favor, inicia sesión nuevamente.");
+      }
+
+      const body = await res.json().catch(() => ({ error: "Error interno del servidor" }));
+      throw new Error(body.error ?? `Error en el servidor (Código ${res.status})`);
+    }
+
+    if (res.status === 204) return undefined as unknown as T;
+    return res.json() as Promise<T>;
+    
+  } catch (error: any) {
+    // Si falla por Red (Fetch Error), lo más probable es que Render esté "despertando"
+    if (error.message === "Failed to fetch" || error.name === "TypeError") {
+      throw new Error("El servidor de Render está despertando o no hay conexión a internet. Por favor, espera 30 segundos e intenta de nuevo.");
+    }
+    throw error;
   }
-
-  if (res.status === 204) return undefined as unknown as T;
-  return res.json() as Promise<T>;
 }
 
 export const api = {

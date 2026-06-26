@@ -57,6 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state,   setState]   = useState<AuthState>({ usuario: null, token: null });
   const [loading, setLoading] = useState(true);
 
+  // ── Restaurar sesión desde localStorage ──────────────────
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -71,6 +72,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // ── Cerrar sesión automáticamente si el token vence ──────
+  useEffect(() => {
+    const handleExpired = () => {
+      setState({ usuario: null, token: null });
+      localStorage.removeItem(STORAGE_KEY);
+      // Usamos replace para que el usuario no pueda volver atrás con el historial
+      window.location.replace("/login");
+    };
+
+    window.addEventListener("auth:expired", handleExpired);
+    return () => window.removeEventListener("auth:expired", handleExpired);
+  }, []);
+
+  // ── Login ─────────────────────────────────────────────────
   const login = useCallback(async (username: string, password: string) => {
     const data = await api.post<{ token: string; usuario: UsuarioAuth }>(
       "/auth/login",
@@ -81,12 +96,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
   }, []);
 
+  // ── Logout manual ────────────────────────────────────────
   const logout = useCallback(() => {
     setState({ usuario: null, token: null });
     localStorage.removeItem(STORAGE_KEY);
+    window.location.replace("/login");
   }, []);
 
-  const esAdmin  = state.usuario?.rol === "ADMINISTRADOR";
+  // ── Derivados ────────────────────────────────────────────
+  const esAdmin    = state.usuario?.rol === "ADMINISTRADOR";
   const sinEmpresa = !!state.usuario && !esAdmin && state.usuario.empresaId == null;
 
   const puedeVer = useCallback(
