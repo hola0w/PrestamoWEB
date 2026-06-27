@@ -13,7 +13,9 @@ import { ClientesPage }     from "./pages/ClientesPage";
 import { PrestamosPage }    from "./pages/PrestamosPage";
 import { CxCPage }          from "./pages/CxCpage";
 import { RegistroPage }     from "./pages/RegistroPage";
-import { ReportesPage }     from "./pages/ReportesPage";
+// ReportesPage ahora exporta "export default function PanelReportes()",
+// por eso el import debe ser default (sin llaves), no named export.
+import ReportesPage         from "./pages/ReportesPage";
 //import { SucursalPage }     from "./pages/SucursalPage";
 import { SucursalPage } from "./pages/SucursalPage";
 import { UsuarioToolPage }  from "./pages/UsuarioToolPage";

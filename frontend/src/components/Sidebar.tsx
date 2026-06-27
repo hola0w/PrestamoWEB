@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth, MODULOS_INFO, type Modulo } from "../hooks/useAuth";
-
+const APP_VERSION = "1.2.0"; // 👈 cambia este valor según tu versión actual
 const NAV_ORDER: Modulo[] = [
   "dashboard",
   "prestamos",
@@ -125,6 +125,9 @@ export function Sidebar() {
               </div>
               <div style={{ fontSize: ".68rem", color: "var(--text-3)" }}>
                 {esAdmin ? "Administrador" : "Usuario estándar"}
+                <div style={{ fontSize: ".62rem", color: "var(--text-3)", opacity: 0.7 }}>
+  v{APP_VERSION}
+</div>
               </div>
             </div>
           </div>

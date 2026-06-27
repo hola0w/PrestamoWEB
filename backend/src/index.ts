@@ -51,15 +51,22 @@ app.use("/api/cobros", authMiddleware, cobrosRouter);
 app.use("/api/cuotas", authMiddleware, cuotasRouter);
 app.use("/api/usuarios", authMiddleware, usuarioRouter);
 app.use("/api/sucursales", authMiddleware, sucursalesRouter); // ← Se añade protección por seguridad
-app.use("/api/zonas", authMiddleware, zonasRouter);      
+app.use("/api/zonas", authMiddleware, zonasRouter);
 
 // --- RUTAS DE REPORTES PROTEGIDAS ---
-// Aplicamos 'authMiddleware' a CADA UNA para que puedan leer el token y los filtros sin fallar
-//app.use("/api/reportes/cartera", authMiddleware, reportesCarteraRouter);   
-//app.use("/api/reportes/prestamos", authMiddleware, reportesPrestamosRouter); 
-//app.use("/api/reportes/cobros", authMiddleware, reportesCobrosRouter);    
+// NOTA: estos 3 routers (cartera, prestamos, cobros bajo /reportes) estaban
+// comentados — por eso MenuReportes.tsx recibía 404 en todas sus categorías
+// "Cartera", "Préstamos" y "Cobros y pagos". Se habilitan aquí sin tocar
+// la lógica SQL interna de ninguno de los routers.
+app.use("/api/reportes/cartera",   authMiddleware, reportesCarteraRouter);
+app.use("/api/reportes/prestamos", authMiddleware, reportesPrestamosRouter);
+app.use("/api/reportes/cobros",    authMiddleware, reportesCobrosRouter);
 
 // Ruta de reportes genérica (Captura /clientes-deuda y /cuotas-vencidas si están dentro de reportesRouter)
+// IMPORTANTE: debe ir DESPUÉS de los routers específicos de arriba.
+// Express evalúa los app.use() en orden; como "/api/reportes" es un prefijo
+// más corto y genérico, si se registrara primero podría interceptar
+// peticiones que en realidad debían llegar a /cartera, /prestamos o /cobros.
 app.use("/api/reportes", authMiddleware, reportesRouter);
 
 // Puerto dinámico requerido por Render
