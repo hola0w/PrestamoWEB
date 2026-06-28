@@ -4,7 +4,7 @@ export type Modulo =
   | "cxc"
   | "cobros"
   | "reportes"
-  | "sucursales"   // ← nuevo
+  | "sucursales"   
   | "usuarios";
 
 export const MODULOS_VALIDOS: Modulo[] = [
@@ -41,11 +41,7 @@ export interface ActualizarUsuarioDTO {
   permisos?: Modulo[];
 }
 
-// ── Sucursales ────────────────────────────────────────────────
-// Contrato de API: estado siempre como string "ACTIVA" | "INACTIVA".
-// La columna real en Postgres es boolean — SucursalService.ts hace
-// la conversión internamente (estadoToBool / filaToSucursal).
-// NO usar `boolean` aquí aunque la columna lo sea.
+
 
 export type EstadoSucursalAPI = "ACTIVA" | "INACTIVA";
 

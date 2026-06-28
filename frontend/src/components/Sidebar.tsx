@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth, MODULOS_INFO, type Modulo } from "../hooks/useAuth";
-const APP_VERSION = "1.2.0"; // 👈 cambia este valor según tu versión actual
+const APP_VERSION = "1.3.0"; // 👈 cambia este valor según tu versión actual
 const NAV_ORDER: Modulo[] = [
   "dashboard",
   "prestamos",
